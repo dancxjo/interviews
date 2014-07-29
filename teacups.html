@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">		
+	</head>
+	<body>		
+		<h1>Question</h1>
+		<p>How many teacups are in an olympic-sized swimming pool?</p>
+		<h1>Answer</h1>
+		<p>Obviously, there's no exact answer here since teacups and Olympic-sized swimming 
+			pools aren't standardized. However, the number of cups in a rectangular prism of 
+			the dimensions 		
+			<a href="http://en.wikipedia.org/wiki/Olympic-sized swimming pool">50 meters by 25 meters by 3 meters</a>
+			is <script>
+			var length = 50; // meters
+			var width = 25;  // meters
+			var depth = 3;   // meters
+			
+			var poolVolume = length * width * depth; // m^3
+			
+			var cupsInACubicMeter = 4226.75;
+			
+			document.write((poolVolume * cupsInACubicMeter).toLocaleString());								
+		</script>.</p>
+		<footer>by <address><a href="mailto:tdreed@gmail.com">Travis Reed</a></address></footer>
+	</body>
+</html>
