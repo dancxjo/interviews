@@ -1,0 +1,266 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<style>
+			.board {
+				border: 3px solid black;
+				padding: 0;
+				display: inline-block;				
+				overflow: auto;
+			}
+			
+			.row {				
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				white-space: nowrap;				
+			}
+			
+			.cell {
+				font-size: 2em;
+				display: inline-block;
+				text-align: center;
+				width: 2em;
+				min-width: 2em;
+				margin: 0;
+				border: 1px solid black;				
+			}
+			
+			.cell>div {
+				opacity: 1;
+				transition: opacity 0.5s;
+			}
+			
+			.hidden>div {
+				opacity: 0;
+				transition: opacity 0.5s;
+			}						
+			
+			.matched {
+				background: #ccc;
+				transition: background 0.5s;
+			}
+			
+			.matched>div {
+				opacity: 0.25;
+				transition: opacity 0.5s;
+			}			
+			
+			#options {				
+				float: left;
+				width 25%;
+			}
+			
+			footer {
+				clear: both;
+			}
+		</style>
+		
+		<script>
+			function Board(items) {
+				var doubleItems = items.concat(items);				
+				
+				if (document.getElementById("shuffle").checked) {
+					for (var i = doubleItems.length - 1; i > 1; i--) {
+						var j = Math.floor(Math.random() * i);
+						var a = doubleItems[j];
+						doubleItems[j] = doubleItems[i];
+						doubleItems[i] = a;
+					}
+				}
+				
+				this.rows = [];
+				this.div = document.createElement("div");
+				this.div.board = this;
+				this.div.setAttribute("class", "board");
+
+				var height = Math.floor(Math.sqrt(doubleItems.length));
+				var width = doubleItems.length / height;							
+				
+				// Costly trial division
+				while (width != Math.floor(width)) {
+					height--;
+					width = doubleItems.length / height;					
+				}
+				
+				for (var i = 0; i < height; i++) {
+					var row = new Row(width, doubleItems.slice(i * width, i * width + width), this);
+					this.rows.push(row);
+					this.div.appendChild(row.div);
+				}
+			}
+			
+			Board.prototype.getUpCells = function () {
+				var upCells = [];				
+				for (var r in this.rows) {
+					var row = this.rows[r];
+					for (var c in row.cells) {
+						var cell = row.cells[c];
+						if (cell.up && !cell.matched) {
+							upCells.push(cell);							
+						}
+					}
+				}
+				
+				return upCells;
+			}
+			
+			Board.prototype.checkMatches = function () {
+				var upCells = this.getUpCells();
+				var upVals = upCells.map(function(cell){return cell.value;});
+				
+				if (upVals.length > 1) {
+					var diff = false;
+					var v = upVals[0];
+					for (var i = 0; i < upVals.length; i++) {
+						if (upVals[i] != v) {
+							diff = true;
+							break;
+						}
+					}
+					
+					for (var c in upCells) {
+						var cell = upCells[c];
+						if (diff) {
+							(function (c) {								
+								setTimeout(function(){c.flip();}, 2500);								
+							})(cell);
+						} else {
+							cell.match();
+						}
+					}
+				}
+			}
+			
+			function Row(width, items, board) {
+				this.cells = [];
+				this.board = board;
+				this.div = document.createElement("div");
+				this.div.setAttribute("class", "row");
+				this.div.row = this;
+				for (var i = 0; i < width; i++) {
+					var cell = new Cell(items[i], this);
+					this.cells.push(cell);
+					this.div.appendChild(cell.div);
+				}
+			}
+			
+			function Cell(value, row) {				
+				this.up = false;
+				this.matched = false;
+				this.row = row;
+				this.value = value;
+				this.div = document.createElement("div");
+				this.div.setAttribute("class", "cell hidden");
+				this.div.inner = document.createElement("div");
+				this.div.appendChild(this.div.inner);
+				this.div.inner.innerHTML = this.value;				
+				this.div.cell = this;
+				this.div.onclick = function() { 
+					var upCells = this.cell.row.board.getUpCells();
+					// Refuse to flip more than two cells at a time
+					// Also refuse to flip already up cells
+					if (this.cell.up || upCells.length > 1) {
+						return ;
+					}
+
+					this.cell.flip(); 
+				}
+			}
+			
+			Cell.prototype.flip = function () {								
+				this.up = !this.up;
+				if (this.up) {					
+					this.div.setAttribute("class", "cell");
+					this.row.board.checkMatches();					
+				} else {
+					this.div.setAttribute("class", "cell hidden");					
+				}								
+			}
+			
+			Cell.prototype.match = function () {
+				this.matched = true;
+				this.div.setAttribute("class", "cell matched");
+				this.div.onclick = function(){};
+			}			
+		</script>
+	</head>
+	<body>
+		<header><h1>Classic Matching Game</h1></header>
+		<p>This was an interview question I had recently. For some strange reason, I bombed
+			it. Here it is, though.</p>
+		<div id="options">
+			<form onchange="constructBoard();">			
+				<label for="length">Number of items:</label>
+				<input id="length" type="range" min="1" max="30" value="8">	
+				<h3>Cheats</h3>
+				<input id="shuffle" type="checkbox">						
+				<label for="shuffle">Shuffle items</label>
+			</form>
+			<input id="reveal" type="checkbox" onchange="toggleReveal();">
+			<label for="reveal">Reveal</label>
+			<input type="button" value="Regenerate" onclick="constructBoard();">			
+		</div>
+		<div id="boardArea"></div>			
+		<script>			
+			function constructBoard() {
+			// Use some icons from WikiCommons
+				var images = [
+					"d/de/Crystal_Clear_device_3floppy_mount.png/48px-Crystal_Clear_device_3floppy_mount.png",
+					"3/35/Crystal_Clear_device_blockdevice.png/48px-Crystal_Clear_device_blockdevice.png",
+					"9/99/Crystal_Clear_device_camera.png/48px-Crystal_Clear_device_camera.png",
+					"e/e5/Crystal_Clear_device_cdrom_mount.png/48px-Crystal_Clear_device_cdrom_mount.png",
+					"1/10/Crystal_Clear_device_cdrom_unmount.png/48px-Crystal_Clear_device_cdrom_unmount.png",
+					"d/d8/Crystal_Clear_device_cdwriter_mount.png/48px-Crystal_Clear_device_cdwriter_mount.png",
+					"c/c6/Crystal_Clear_device_cdwriter_unmount.png/48px-Crystal_Clear_device_cdwriter_unmount.png",
+					"4/4c/Crystal_Clear_device_dvd_mount_2.png/48px-Crystal_Clear_device_dvd_mount_2.png",
+					"6/6f/Crystal_Clear_device_dvd_mount.png/48px-Crystal_Clear_device_dvd_mount.png",
+					"b/b9/Crystal_Clear_device_dvd_unmount.png/48px-Crystal_Clear_device_dvd_unmount.png",
+					"7/72/Crystal_Clear_device_floppy_unmount.png/48px-Crystal_Clear_device_floppy_unmount.png",
+					"e/e2/Crystal_Clear_device_hdd_mount.png/48px-Crystal_Clear_device_hdd_mount.png",
+					"f/f8/Crystal_Clear_app_harddrive.png/48px-Crystal_Clear_app_harddrive.png",
+					"6/67/Crystal_Clear_device_joystick.png/48px-Crystal_Clear_device_joystick.png",
+					"3/36/Crystal_Clear_device_keyboard.png/48px-Crystal_Clear_device_keyboard.png",
+					"e/ee/Crystal_Clear_device_mp3player.png/48px-Crystal_Clear_device_mp3player.png",
+					"4/46/Crystal_Clear_device_mp3player2.png/48px-Crystal_Clear_device_mp3player2.png",
+					"6/62/Crystal_Clear_device_nfs_mount.png/48px-Crystal_Clear_device_nfs_mount.png",
+					"6/61/Crystal_Clear_device_nfs_unmount.png/48px-Crystal_Clear_device_nfs_unmount.png",
+					"a/a5/Crystal_Clear_device_pda_black.png/48px-Crystal_Clear_device_pda_black.png",
+					"f/f3/Crystal_Clear_device_pda_blue.png/48px-Crystal_Clear_device_pda_blue.png",
+					"7/77/Crystal_Clear_device_pda.png/48px-Crystal_Clear_device_pda.png",
+					"3/32/Crystal_Clear_device_print_class.png/48px-Crystal_Clear_device_print_class.png",
+					"a/ae/Crystal_Clear_device_scanner.png/48px-Crystal_Clear_device_scanner.png",
+					"7/77/Crystal_Clear_device_tablet.png/48px-Crystal_Clear_device_tablet.png",
+					"1/1c/Crystal_Clear_device_tv.png/48px-Crystal_Clear_device_tv.png",
+					"e/e8/Crystal_Clear_device_usbpendrive_mount.png/48px-Crystal_Clear_device_usbpendrive_mount.png",
+					"9/94/Crystal_Clear_device_usbpendrive_unmount.png/48px-Crystal_Clear_device_usbpendrive_unmount.png",
+					"6/64/Crystal_Clear_device_zip_mount.png/48px-Crystal_Clear_device_zip_mount.png",
+					"2/29/Crystal_Clear_device_zip_unmount.png/48px-Crystal_Clear_device_zip_unmount.png"
+				];
+				images = images.map(function (iconName) {return "<img src='http:////upload.wikimedia.org/wikipedia/commons/thumb/"+iconName+"' height='48' width='48'/>";} );
+				
+				var n = document.getElementById("length").value;
+				
+				images = images.slice(0, n);				
+				
+				document.getElementById("boardArea").innerHTML = "";
+				var board = new Board(images);				
+				document.getElementById("boardArea").appendChild(board.div);
+			}
+			constructBoard();
+			
+			function toggleReveal() {
+				var ss = document.styleSheets[0];
+				if (document.getElementById("reveal").checked) {					
+					ss.cssRules[4].style.opacity = 0.45;
+				} else {
+					ss.cssRules[4].style.opacity = 0;
+				}								
+			}
+			
+			toggleReveal();
+		</script>
+		<footer>by <address><a href="mailto:tdreed@gmail.com">Travis Reed</a></address></footer>
+	</body>
+</html>
