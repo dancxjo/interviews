@@ -2,6 +2,15 @@
 <html>
 	<head>
 		<meta charset="UTF-8">		
+		<style>
+			aside {
+				float: right;
+				font-size: 0.75em;
+				padding: 1em;
+				background: #ddd;
+				border: 1px dotted black;
+			}
+		</style>
 	</head>
 	<body>		
 		<h1>Teacups in a Swimming Pool</h1>
@@ -26,8 +35,24 @@
 		<h1>Disjunction of an Array</h1>
 		<p>You are given two arrays, A and B. B contains all the elements of A plus one 
 		additional element that is not a member of A. Find the most efficient algorithm
-		to find the differing element.</p>
-		
+		to find the differing element.</p><aside>Dear Gussy! This was for a help desk 
+		job. I'm trying to do some independent research into algorithm optimization, but 
+		it was a support role, for goodness' sake!</aside>
+		<h2>Solution I Provided</h2>
+		<p>
+			This is a naive approach and clearly not the most efficient.
+			Iterate over B comparing every element of B to every element of A.
+			<pre>
+			<script>
+				function compareArrays(A, B) {
+					
+				}
+				
+				document.write(compareArrays([4, 8, 15, 16, 23, 42], [42, 16, 8, 23, 15, 2]));
+			</script>
+			</pre>
+			
+		</p>
 		<footer>by <address><a href="mailto:tdreed@gmail.com">Travis Reed</a></address></footer>
 	</body>
 </html>
