@@ -9,6 +9,7 @@
 				padding: 1em;
 				background: #ddd;
 				border: 1px dotted black;
+				width: 25%;
 			}
 		</style>
 	</head>
@@ -42,17 +43,30 @@
 		<p>
 			This is a naive approach and clearly not the most efficient.
 			Iterate over B comparing every element of B to every element of A.
-			<pre>
+			A test run of this process on the arrays [4, 8, 15, 16, 23, 42] and 
+			[42, 16, 8, 23, 15, 2] produces 
 			<script>
 				function compareArrays(A, B) {
-					
+					for (var i in B) {
+						var b = B[i];
+						var matched = false;
+						for (var j in A) {
+							var a = A[j];
+							if (a == b) {
+								matched = true;
+								break;
+							}
+						}
+						if (!matched) {
+							return b;
+						}
+					}
+					return undefined;
 				}
 				
 				document.write(compareArrays([4, 8, 15, 16, 23, 42], [42, 16, 8, 23, 15, 2]));
-			</script>
-			</pre>
-			
-		</p>
+			</script>.
+		</p>	
 		<footer>by <address><a href="mailto:tdreed@gmail.com">Travis Reed</a></address></footer>
 	</body>
 </html>
